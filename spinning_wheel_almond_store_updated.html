@@ -1,0 +1,121 @@
+
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>عجلة الحظ - ALMOND STORE</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+        }
+        canvas {
+            margin: auto;
+            display: block;
+            border: 5px solid #333;
+        }
+        #input-container {
+            margin: 20px;
+        }
+        #spin {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 20px;
+            font-size: 20px;
+            cursor: pointer;
+            background-color: #007BFF;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+        }
+        #message {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>عجلة الحظ - ALMOND STORE</h1>
+    <canvas id="wheel" width="500" height="500"></canvas>
+    <div id="input-container">
+        <input type="number" id="user-number" placeholder="أدخل رقمك" />
+        <button id="spin">تدوير العجلة</button>
+    </div>
+    <p id="message"></p>
+    <script>
+        const canvas = document.getElementById("wheel");
+        const ctx = canvas.getContext("2d");
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        const radius = 200;
+        const options = ["خصم 10 جنيه", "خصم 20 جنيه", "خصم 5 جنيه", "خصم 5%", "حظ أوفر", "خصم 15 جنيه"];
+        const colors = ["#FF5733", "#33FF57", "#3357FF", "#FF33A1", "#FFC300", "#DAF7A6"];
+        let angle = 0;
+        const usedNumbers = new Set();
+
+        function drawWheel() {
+            const angleStep = (2 * Math.PI) / options.length;
+            for (let i = 0; i < options.length; i++) {
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.arc(centerX, centerY, radius, angleStep * i, angleStep * (i + 1));
+                ctx.fillStyle = colors[i];
+                ctx.fill();
+                ctx.stroke();
+                ctx.closePath();
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                ctx.rotate(angleStep * (i + 0.5));
+                ctx.textAlign = "center";
+                ctx.fillStyle = "#fff";
+                ctx.font = "18px Arial";
+                ctx.fillText(options[i], radius / 2, 10);
+                ctx.restore();
+            }
+        }
+
+        document.getElementById("spin").addEventListener("click", () => {
+            const userNumber = document.getElementById("user-number").value;
+            const message = document.getElementById("message");
+
+            if (!userNumber) {
+                message.textContent = "يرجى إدخال رقم.";
+                return;
+            }
+
+            if (usedNumbers.has(userNumber)) {
+                message.textContent = "هذا الرقم تم استخدامه من قبل.";
+                return;
+            }
+
+            usedNumbers.add(userNumber);
+            message.textContent = "";
+
+            const spinAngle = Math.random() * 360 + 720; // دورانين كاملين على الأقل
+            const spinSpeed = spinAngle / 100;
+            let currentSpin = 0;
+            const spinInterval = setInterval(() => {
+                angle += spinSpeed;
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                ctx.rotate((angle * Math.PI) / 180);
+                ctx.translate(-centerX, -centerY);
+                drawWheel();
+                ctx.restore();
+                currentSpin += spinSpeed;
+                if (currentSpin >= spinAngle) {
+                    clearInterval(spinInterval);
+                    const winningIndex = Math.floor(((angle % 360) / 360) * options.length);
+                    const result = options[options.length - 1 - winningIndex];
+                    message.textContent = `مبروك! ربحت: ${result}`;
+                }
+            }, 10);
+        });
+
+        drawWheel();
+    </script>
+</body>
+</html>
